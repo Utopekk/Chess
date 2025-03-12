@@ -3,10 +3,10 @@ import sys
 
 pg.init()
 
-WIDTH = HEGIHT = 800
+WIDTH = HEIGHT = 800
 SQ_SIZE = WIDTH // 8
 
-screen = pg.display.set_mode((WIDTH, HEGIHT))
+screen = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("Chess")
 
 board = [["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
@@ -22,6 +22,8 @@ turn = 'w'
 selected_pos = None
 possible_moves = []
 last_move = None  # For en passant
+king_moved = {'w': False, 'b': False}
+rook_moved = {'w': [False, False], 'b': [False, False]}  # [left rook, right rook]
 
 
 def draw_board():
@@ -58,6 +60,13 @@ def move_piece(start_row, start_col, end_row, end_col):
         board[end_row][end_col] = "--"
         print("Move puts king in check!")
         return False
+    if piece[1] == "K":
+        king_moved[turn] = True
+    if piece[1] == "R":
+        if start_col == 0:
+            rook_moved[turn][0] = True
+        if start_col == 7:
+            rook_moved[turn][1] = True
     selected_pos = None
     turn = 'b' if turn == 'w' else 'w'
     return True
@@ -100,7 +109,7 @@ def is_in_check(turn):
                     if Knight_moves(r, c, king_pos[0], king_pos[1], opponent, check=True):
                         return True
                 elif piece == "K":
-                    if King_moves(r, c, king_pos[0], king_pos[1], opponent, check=True):
+                    if King_moves(r, c, king_pos[0], king_pos[1], check=True):
                         return True
     return False
 
@@ -130,7 +139,7 @@ def is_checkmate(turn):
                         elif piece == "N" and Knight_moves(r, c, row, col, turn, check=True):
                             if not is_in_check(turn):
                                 return False
-                        elif piece == "K" and King_moves(r, c, row, col, turn, check=True):
+                        elif piece == "K" and King_moves(r, c, row, col, check=True):
                             if not is_in_check(turn):
                                 return False
     return True
@@ -140,13 +149,13 @@ def Pawn_moves(start_row, start_col, end_row, end_col, check=False):
     global last_move, selected_pos, turn
     if board[end_row][end_col] == "--" and start_col == end_col:
         if turn == 'w':
-            if start_row - end_row == 1 or (abs(start_row - end_row) == 2 and start_row == 6):
+            if start_row - end_row == 1 or (abs(start_row - end_row) == 2 and start_row == 6 and board[5][start_col] == "--"):
                 if not check:
                     move_piece(start_row, start_col, end_row, end_col)
                     last_move = (start_row, start_col, end_row, end_col)
                 return True
         if turn == 'b':
-            if end_row - start_row == 1 or (abs(start_row - end_row) == 2 and start_row == 1):
+            if end_row - start_row == 1 or (abs(start_row - end_row) == 2 and start_row == 1 and board[2][start_col] == "--"):
                 if not check:
                     move_piece(start_row, start_col, end_row, end_col)
                     last_move = (start_row, start_col, end_row, end_col)
@@ -230,11 +239,37 @@ def Knight_moves(start_row, start_col, end_row, end_col, turn, check=False):
     return False
 
 
-def King_moves(start_row, start_col, end_row, end_col, turn, check=False):
+def King_moves(start_row, start_col, end_row, end_col, check=False):
+    global selected_pos, turn
     if board[end_row][end_col][0] != turn:
         if abs(start_row - end_row) <= 1 and abs(start_col - end_col) <= 1:
             if not check:
                 move_piece(start_row, start_col, end_row, end_col)
+            return True
+    # Castling
+    if turn == 'w':
+        i = 7
+    else:
+        i = 0
+    if start_row == end_row and start_col == 4 and not king_moved[turn]:
+        if end_col == 6 and board[i][5] == '--' and board[i][6] == '--' and board[i][7] == f"{turn}R" and not rook_moved[turn][1]:
+            if not check:
+                board[i][4] = "--"
+                board[i][5] = f"{turn}R"
+                board[i][6] = f"{turn}K"
+                board[i][7] = "--"
+                selected_pos = None
+                turn = 'b' if turn == 'w' else 'w'
+            return True
+        if end_col == 2 and board[i][3] == '--' and board[i][2] == '--' and board[i][1] == "--" and board[i][0] == f"{turn}R" and not rook_moved[turn][0]:
+            if not check:
+                board[i][0] = "--"
+                board[i][1] = "--"
+                board[i][2] = f"{turn}K"
+                board[i][3] = f"{turn}R"
+                board[i][4] = "--"
+                selected_pos = None
+                turn = 'b' if turn == 'w' else 'w'
             return True
     return False
 
@@ -265,7 +300,7 @@ def handle_click(pos):
                     possible_moves.append((r, c))
                 elif piece == "N" and Knight_moves(row, col, r, c, turn, check=True):
                     possible_moves.append((r, c))
-                elif piece == "K" and King_moves(row, col, r, c, turn, check=True):
+                elif piece == "K" and King_moves(row, col, r, c, check=True):
                     possible_moves.append((r, c))
     if selected_pos is not None and board[selected_pos[1]][selected_pos[0]][0] == turn:
         if board[selected_pos[1]][selected_pos[0]][1] == "P":
@@ -284,7 +319,7 @@ def handle_click(pos):
             Knight_moves(selected_pos[1], selected_pos[0], row, col, turn)
             return
         if board[selected_pos[1]][selected_pos[0]][1] == "K":
-            King_moves(selected_pos[1], selected_pos[0], row, col, turn)
+            King_moves(selected_pos[1], selected_pos[0], row, col)
             return
 
 
