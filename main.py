@@ -114,35 +114,67 @@ def is_in_check(turn):
     return False
 
 
+def can_block_attack(turn):
+    for r in range(8):
+        for c in range(8):
+            if board[r][c][0] == turn:  # Piece of the player whose king is in check
+                piece = board[r][c][1]
+                for row in range(8):
+                    for col in range(8):
+                        # Check if the piece can move and block the attack
+                        if piece == "P" and Pawn_moves(r, c, row, col, check=True):
+                            if not is_in_check(turn):  # If it can block and does not leave the king in check
+                                return True
+                        elif piece == "R" and Rook_moves(r, c, row, col, turn, check=True):
+                            if not is_in_check(turn):
+                                return True
+                        elif piece == "B" and Bishops_moves(r, c, row, col, turn, check=True):
+                            if not is_in_check(turn):
+                                return True
+                        elif piece == "Q" and Queen_moves(r, c, row, col, turn, check=True):
+                            if not is_in_check(turn):
+                                return True
+                        elif piece == "N" and Knight_moves(r, c, row, col, turn, check=True):
+                            if not is_in_check(turn):
+                                return True
+                        elif piece == "K" and King_moves(r, c, row, col, check=True):
+                            if not is_in_check(turn):
+                                return True
+    return False
+
+
 def is_checkmate(turn):
     if not is_in_check(turn):
         return False
 
-    for r in range(8):
-        for c in range(8):
-            if board[r][c][0] == turn:
-                piece = board[r][c][1]
-                for row in range(8):
-                    for col in range(8):
-                        if piece == "P" and Pawn_moves(r, c, row, col, check=True):
-                            if not is_in_check(turn):
-                                return False
-                        elif piece == "R" and Rook_moves(r, c, row, col, turn, check=True):
-                            if not is_in_check(turn):
-                                return False
-                        elif piece == "B" and Bishops_moves(r, c, row, col, turn, check=True):
-                            if not is_in_check(turn):
-                                return False
-                        elif piece == "Q" and Queen_moves(r, c, row, col, turn, check=True):
-                            if not is_in_check(turn):
-                                return False
-                        elif piece == "N" and Knight_moves(r, c, row, col, turn, check=True):
-                            if not is_in_check(turn):
-                                return False
-                        elif piece == "K" and King_moves(r, c, row, col, check=True):
-                            if not is_in_check(turn):
-                                return False
-    return True
+    # If king is in check and no piece can block the check
+    if not can_block_attack('b' if turn == 'w' else 'w'):
+        for r in range(8):
+            for c in range(8):
+                if board[r][c][0] == turn:
+                    piece = board[r][c][1]
+                    for row in range(8):
+                        for col in range(8):
+                            if piece == "P" and Pawn_moves(r, c, row, col, check=True):
+                                if not is_in_check(turn):
+                                    return False
+                            elif piece == "R" and Rook_moves(r, c, row, col, turn, check=True):
+                                if not is_in_check(turn):
+                                    return False
+                            elif piece == "B" and Bishops_moves(r, c, row, col, turn, check=True):
+                                if not is_in_check(turn):
+                                    return False
+                            elif piece == "Q" and Queen_moves(r, c, row, col, turn, check=True):
+                                if not is_in_check(turn):
+                                    return False
+                            elif piece == "N" and Knight_moves(r, c, row, col, turn, check=True):
+                                if not is_in_check(turn):
+                                    return False
+                            elif piece == "K" and King_moves(r, c, row, col, check=True):
+                                if not is_in_check(turn):
+                                    return False
+        return True  # If no moves can save the king, it's checkmate
+    return False
 
 
 def Pawn_moves(start_row, start_col, end_row, end_col, check=False):
@@ -173,10 +205,6 @@ def Pawn_moves(start_row, start_col, end_row, end_col, check=False):
         last_start_row, last_start_col, last_end_row, last_end_col = last_move
         if abs(start_col - end_col) == 1 and end_row == start_row + (-1 if turn == 'w' else 1):
             if board[end_row][end_col] == "--" and board[start_row][end_col] == f"{'b' if turn == 'w' else 'w'}P":
-                print("last start row", last_start_row)
-                print("last start col", last_start_col)
-                print("last end row", last_end_row)
-                print("last end col", last_end_col)
                 if last_start_row == (1 if turn == 'w' else 6) and last_end_row == (3 if turn == 'w' else 4) and last_end_col == end_col:
                     if not check:
                         board[start_row][start_col] = "--"
