@@ -72,6 +72,12 @@ def move_piece(start_row, start_col, end_row, end_col):
     return True
 
 
+def change_turn():
+    global selected_pos, turn
+    selected_pos = None
+    turn = 'b' if turn == 'w' else 'w'
+
+
 def draw_possible_moves():
     for move in possible_moves:
         pg.draw.circle(screen, (128, 128, 128), (move[1] * SQ_SIZE + SQ_SIZE // 2, move[0] * SQ_SIZE + SQ_SIZE // 2),
@@ -94,7 +100,7 @@ def is_in_check(turn):
             if board[r][c][0] == opponent:
                 piece = board[r][c][1]
                 if piece == "P":
-                    if Pawn_moves(r, c, king_pos[0], king_pos[1], check=True):
+                    if Pawn_moves(r, c, king_pos[0], king_pos[1], opponent, check=True):
                         return True
                 elif piece == "R":
                     if Rook_moves(r, c, king_pos[0], king_pos[1], opponent, check=True):
@@ -122,7 +128,7 @@ def can_block_attack(turn):
                 for row in range(8):
                     for col in range(8):
                         # Check if the piece can move and block the attack
-                        if piece == "P" and Pawn_moves(r, c, row, col, check=True):
+                        if piece == "P" and Pawn_moves(r, c, row, col, turn,check=True):
                             if not is_in_check(turn):  # If it can block and does not leave the king in check
                                 return True
                         elif piece == "R" and Rook_moves(r, c, row, col, turn, check=True):
@@ -155,7 +161,7 @@ def is_checkmate(turn):
                     piece = board[r][c][1]
                     for row in range(8):
                         for col in range(8):
-                            if piece == "P" and Pawn_moves(r, c, row, col, check=True):
+                            if piece == "P" and Pawn_moves(r, c, row, col, turn, check=True):
                                 if not is_in_check(turn):
                                     return False
                             elif piece == "R" and Rook_moves(r, c, row, col, turn, check=True):
@@ -177,8 +183,8 @@ def is_checkmate(turn):
     return False
 
 
-def Pawn_moves(start_row, start_col, end_row, end_col, check=False):
-    global last_move, selected_pos, turn
+def Pawn_moves(start_row, start_col, end_row, end_col, turn, check=False):
+    global last_move, selected_pos
     if board[end_row][end_col] == "--" and start_col == end_col:
         if turn == 'w':
             if start_row - end_row == 1 or (abs(start_row - end_row) == 2 and start_row == 6 and board[5][start_col] == "--"):
@@ -211,8 +217,7 @@ def Pawn_moves(start_row, start_col, end_row, end_col, check=False):
                         board[start_row][end_col] = "--"
                         board[end_row][end_col] = f"{turn}P"
                         last_move = (start_row, start_col, end_row, end_col)
-                        selected_pos = None
-                        turn = 'b' if turn == 'w' else 'w'
+                        change_turn()
                     return True
     return False
 
@@ -318,7 +323,7 @@ def handle_click(pos):
         possible_moves = []
         for r in range(8):
             for c in range(8):
-                if piece == "P" and Pawn_moves(row, col, r, c, check=True):
+                if piece == "P" and Pawn_moves(row, col, r, c, turn,check=True):
                     possible_moves.append((r, c))
                 elif piece == "R" and Rook_moves(row, col, r, c, turn, check=True):
                     possible_moves.append((r, c))
@@ -332,7 +337,7 @@ def handle_click(pos):
                     possible_moves.append((r, c))
     if selected_pos is not None and board[selected_pos[1]][selected_pos[0]][0] == turn:
         if board[selected_pos[1]][selected_pos[0]][1] == "P":
-            Pawn_moves(selected_pos[1], selected_pos[0], row, col)
+            Pawn_moves(selected_pos[1], selected_pos[0], row, col,turn)
             return
         if board[selected_pos[1]][selected_pos[0]][1] == "R":
             Rook_moves(selected_pos[1], selected_pos[0], row, col, turn)
