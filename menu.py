@@ -12,6 +12,7 @@ def start_network_game():
 
 root = tk.Tk()
 root.title("Chess Menu")
+root.geometry('800x600')
 
 label = tk.Label(root, text="CHESS", font=("Helvetica", 24))
 label.pack(pady=20)
