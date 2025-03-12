@@ -1,8 +1,6 @@
 import pygame as pg
 import sys
 
-from main import change_turn
-
 pg.init()
 WIDTH = HEIGHT = 800
 SQ_SIZE = WIDTH // 8
