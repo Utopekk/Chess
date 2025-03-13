@@ -1,5 +1,6 @@
 import pygame as pg
 import sys
+from tkinter import simpledialog
 
 pg.init()
 WIDTH = HEIGHT = 800
@@ -74,7 +75,7 @@ class ChessGame:
         for move in self.possible_moves:
             pg.draw.circle(screen, (128, 128, 128),
                            (move[1] * SQ_SIZE + SQ_SIZE // 2, move[0] * SQ_SIZE + SQ_SIZE // 2),
-                           SQ_SIZE // 6)
+                           SQ_SIZE // 5)
 
     def change_turn(self):
         self.selected_pos = None
@@ -87,6 +88,14 @@ class ChessGame:
                     return r, c
         return None
 
+    def promotion(self, turn, end_row, end_col):
+        options = ["Q", "R", "B", "N"]
+        option = simpledialog.askstring("Promotion", "Choose promotion piece: Queen (Q), Rook (R), Bishop (B), Knight (N)",)
+        if option in options:
+            self.board[end_row][end_col] = f"{turn}{option}"
+        else:
+            print("Wrong input")
+            self.promotion(turn, end_row, end_col)
     def is_in_check(self, turn):
         king_pos = self.find_king(turn)
         opponent = 'b' if turn == 'w' else 'w'
@@ -122,6 +131,8 @@ class ChessGame:
                     if not check:
                         self.move_piece(start_row, start_col, end_row, end_col)
                         self.last_move = (start_row, start_col, end_row, end_col)
+                        if end_row == 0:  # Promotion for white pawn
+                            self.promotion(turn, end_row, end_col)
                     return True
             if turn == 'b':
                 if end_row - start_row == 1 or (
@@ -129,15 +140,21 @@ class ChessGame:
                     if not check:
                         self.move_piece(start_row, start_col, end_row, end_col)
                         self.last_move = (start_row, start_col, end_row, end_col)
+                        if end_row == 7:  # Promotion for black pawn
+                            self.promotion(turn, end_row, end_col)
                     return True
         if self.board[end_row][end_col][0] != turn and self.board[end_row][end_col] != "--":
             if turn == 'w' and (start_row - end_row) == 1 and abs(start_col - end_col) == 1:
                 if not check:
                     self.move_piece(start_row, start_col, end_row, end_col)
+                    if end_row == 0:  # Promotion for white pawn
+                        self.promotion(turn, end_row, end_col)
                 return True
             if turn == 'b' and (start_row - end_row) == -1 and abs(start_col - end_col) == 1:
                 if not check:
                     self.move_piece(start_row, start_col, end_row, end_col)
+                    if end_row == 7:  # Promotion for black pawn
+                        self.promotion(turn, end_row, end_col)
                 return True
         if self.last_move:  # en passant
             last_start_row, last_start_col, last_end_row, last_end_col = self.last_move
