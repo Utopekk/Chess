@@ -96,6 +96,7 @@ class ChessGame:
         else:
             print("Wrong input")
             self.promotion(turn, end_row, end_col)
+
     def is_in_check(self, turn):
         king_pos = self.find_king(turn)
         opponent = 'b' if turn == 'w' else 'w'
