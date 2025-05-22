@@ -233,7 +233,7 @@ class ChessGame:
             i = 7
         else:
             i = 0
-        if start_row == end_row and start_col == 4 and not self.king_moved[self.turn]:
+        if start_row == end_row and start_col == 4 and not self.king_moved[self.turn] and not self.is_in_check(self.turn):
             if end_col == 6 and self.board[i][5] == '--' and self.board[i][6] == '--' and self.board[i][
                 7] == f"{self.turn}R" and not \
                     self.rook_moved[self.turn][1]:
