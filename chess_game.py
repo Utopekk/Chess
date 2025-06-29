@@ -1,6 +1,6 @@
 import pygame as pg
 import sys
-from tkinter import simpledialog
+from tkinter import simpledialog, messagebox, Tk
 
 pg.init()
 WIDTH = HEIGHT = 800
@@ -123,6 +123,67 @@ class ChessGame:
                         if self.King_moves(r, c, king_pos[0], king_pos[1], check=True):
                             return True
         return False
+
+    def is_checkmate(self, turn):
+        if not self.is_in_check(turn):
+            return False
+        for r in range(8):
+            for c in range(8):
+                if self.board[r][c][0] == turn:
+                    piece = self.board[r][c][1]
+                    for nr in range(8):
+                        for nc in range(8):
+                            board_copy = [row[:] for row in self.board]
+                            turn_copy = self.turn
+                            if piece == "P" and self.Pawn_moves(r, c, nr, nc, turn, check=True):
+                                self.move_piece(r, c, nr, nc)
+                                if not self.is_in_check(turn):
+                                    self.board = board_copy
+                                    self.turn = turn_copy
+                                    return False
+                                self.board = board_copy
+                                self.turn = turn_copy
+                            elif piece == "R" and self.Rook_moves(r, c, nr, nc, turn, check=True):
+                                self.move_piece(r, c, nr, nc)
+                                if not self.is_in_check(turn):
+                                    self.board = board_copy
+                                    self.turn = turn_copy
+                                    return False
+                                self.board = board_copy
+                                self.turn = turn_copy
+                            elif piece == "B" and self.Bishops_moves(r, c, nr, nc, turn, check=True):
+                                self.move_piece(r, c, nr, nc)
+                                if not self.is_in_check(turn):
+                                    self.board = board_copy
+                                    self.turn = turn_copy
+                                    return False
+                                self.board = board_copy
+                                self.turn = turn_copy
+                            elif piece == "Q" and self.Queen_moves(r, c, nr, nc, turn, check=True):
+                                self.move_piece(r, c, nr, nc)
+                                if not self.is_in_check(turn):
+                                    self.board = board_copy
+                                    self.turn = turn_copy
+                                    return False
+                                self.board = board_copy
+                                self.turn = turn_copy
+                            elif piece == "N" and self.Knight_moves(r, c, nr, nc, turn, check=True):
+                                self.move_piece(r, c, nr, nc)
+                                if not self.is_in_check(turn):
+                                    self.board = board_copy
+                                    self.turn = turn_copy
+                                    return False
+                                self.board = board_copy
+                                self.turn = turn_copy
+                            elif piece == "K" and self.King_moves(r, c, nr, nc, check=True):
+                                self.move_piece(r, c, nr, nc)
+                                if not self.is_in_check(turn):
+                                    self.board = board_copy
+                                    self.turn = turn_copy
+                                    return False
+                                self.board = board_copy
+                                self.turn = turn_copy
+        return True
 
     def Pawn_moves(self, start_row, start_col, end_row, end_col, turn, check=False):
         if self.board[end_row][end_col] == "--" and start_col == end_col:
@@ -307,13 +368,23 @@ class ChessGame:
 # Game loop
 def main():
     game = ChessGame()
-    while True:
+    root = Tk()
+    root.withdraw()
+    running = True
+    while running:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
             elif event.type == pg.MOUSEBUTTONDOWN:
                 game.handle_click(pg.mouse.get_pos())
+                if game.is_checkmate(game.turn):
+                    game.draw_board(screen, SQ_SIZE)
+                    game.draw_pieces(screen, SQ_SIZE)
+                    pg.display.flip()
+                    winner = "White" if game.turn == 'b' else "Black"
+                    messagebox.showinfo("Checkmate", f"{winner} wins by checkmate!")
+                    running = False
         game.draw_board(screen, SQ_SIZE)
         game.draw_pieces(screen, SQ_SIZE)
         pg.display.flip()
