@@ -45,7 +45,7 @@ class ChessGame:
                 self.images[p] = img
             except Exception:
                 self.images[p] = None
-
+                
     def draw_board(self, screen, SQ_SIZE):
         in_check = self.is_in_check(self.turn)
         king_pos = self.find_king(self.turn)
