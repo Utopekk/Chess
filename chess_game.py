@@ -15,7 +15,7 @@ HIGHLIGHT = (0, 255, 0)
 CHECK_HIGHLIGHT = (255, 0, 0)
 MOVE_DOT = (128, 128, 128)
 
-//
+
 class ChessGame:
     def __init__(self):
         self.board = [["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
